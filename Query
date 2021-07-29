@@ -1,0 +1,23 @@
+SELECT ANF.date,
+       CDD.countryname AS country,
+       CDD.regionname AS region,
+       --CDA.countryname AS arrivalcountryname,
+       --CDA.regionname AS arrivalregionname,
+       sum(ANF.searches) as searches
+FROM (
+         (SELECT distinct farenetdate as date,
+                          departureairportiatacode,
+                          arrivalairportiatacode,
+                          sum(searches)        AS searches
+          FROM "farenet_s3"."aggregated_normalized_farenet_001"
+          WHERE farenetdate >= DATE('2020-01-01')
+            AND farenetdate < current_date
+            AND departureairportiatacode is not null
+            AND arrivalairportiatacode is not null
+          GROUP BY farenetdate, departureairportiatacode, arrivalairportiatacode
+         ) AS ANF
+         )
+         JOIN farenet_s3.core_dictionary_001 CDD on departureairportiatacode = CDD.iatacode
+         --JOIN  farenet_s3.core_dictionary_001 CDA on arrivalairportiatacode = CDA.iatacode
+GROUP BY ANF.date, CDD.countryname, CDD.regionname --, CDA.countryname, CDA.regionname     
+;               
